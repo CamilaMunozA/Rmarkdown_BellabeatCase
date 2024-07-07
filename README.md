@@ -1,23 +1,25 @@
 # Bellabeat Case Project
 
-## Descripción
+## Description
 
-Este proyecto analiza los datos de Bellabeat para proporcionar información valiosa sobre los patrones de uso y las tendencias de los usuarios. El análisis se realiza utilizando R y se documenta en un archivo RMarkdown.
+This project analyzes Bellabeat data to provide valuable insights into usage patterns and user trends. The analysis is conducted using R and documented in an RMarkdown file.
 
-## Instalación
-**Clona el repositorio:**
+## Installation
+**Clone the repository:**
    ```sh
    git clone https://github.com/CamilaMunozA/Rmarkdown_BellabeatCase.git
    ```
 
-## Contribución
-Si deseas contribuir a este proyecto, por favor sigue estos pasos:
+## Contribution
+If you wish to contribute to this project, please follow these steps:
 
-1. Haz un fork del repositorio.
-2. Crea una nueva rama (git checkout -b feature/nueva-funcionalidad).
-3. Realiza tus cambios y haz commit (git commit -m 'Añadir nueva funcionalidad').
-4. Sube tus cambios (git push origin feature/nueva-funcionalidad).
-5. Abre un Pull Request en GitHub.
+1. Fork the repository.
+2. Create a new branch (git checkout -b feature/new-feature).
+3. Make your changes and commit them (git commit -m 'Add new feature').
+4. Push your changes (git push origin feature/new-feature).
+5. Open a Pull Request on GitHub.
 
-**Contacto**: Camila Muñoz, email: camilamnz12@gmail.com
+**Contact:** Camila Muñoz, email: camilamnz12@gmail.com
+
+
    
