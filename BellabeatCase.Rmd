@@ -1,0 +1,293 @@
+---
+title: "Bellabeat_case"
+author: "Camila"
+date: "2024-07-07"
+output: github_document
+---
+    ```{r setup, include=FALSE}
+    knitr::opts_chunk$set(echo = TRUE, fig.show='inline')
+    ```
+
+### **Introduction** 
+
+As a junior data analyst on the marketing analyst team at Bellabeat, a rising and successful company that develops high-tech products focused on women's health, you face an exciting challenge. Although Bellabeat is already a recognized player, it has the potential to expand significantly in the global market for smart devices. Urška Sršen, co-founder and creative director of the company, is convinced that analyzing data from physical activity captured by these devices can open new doors for business opportunities.
+
+Your mission is to focus on one of Bellabeat's products to delve into the analysis of smart device data, exploring how consumers interact with these devices. The discoveries you make will be key to defining Bellabeat's marketing strategies. You are scheduled to present your findings and strategic recommendations to the company's executive team.
+
+Additionally, Urška Sršen has asked you to examine the usage data of smart devices from other brands to understand how consumers use competing equipment. This analysis should help you select a Bellabeat product and apply these insights in your presentation.
+
+### **Ask**
+
+ The following questions will guide your analysis and help focus your efforts on key areas that could translate into competitive advantages for Bellabeat in the market.
+
+* What are some trends in the usage of smart devices?
+
+* How could these trends be applied to Bellabeat's customers?
+
+* How could these trends help influence Bellabeat's marketing strategy?
+
+#### **Business task**
+Identify smart device usage trends that can be applied to a Bellabeat product and serve as a growth and marketing opportunity for the company.
+
+### **Preparation**
+
+We are working with data organized in a wide format and stored in csv files. These data are integral, reliable, and updated periodically, the last update was a month ago. However, they lack complete metadata. Regarding authorization, privacy, security, and accessibility, the data are under the CC0: Public Domain license. Access to the data is limited to authorized individuals, and transparent privacy policies are implemented. Periodic security audits are carried out, and the availability and accessibility of the data for those who need it are ensured. We verified the integrity of the data through a source review, metadata validation, initial exploration, data cleaning, integrity tests, documentation and traceability, and cross-validation. This verification allows us to ensure the reliability and validity of the results of a data analysis. However, one limitation is that the data do not include demographic, gender, or age information, which could introduce biases and discrepancies in analytical results.
+
+### **Process**
+
+#### **Loading packages**
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(janitor)
+library(here)
+```
+
+#### **Loading data sets**
+```{r}
+setwd("C:/Users/David/Documents/Data analisis/Caso practico/mturkfitbit_export_4.12.16-5.12.16/Fitabase Data 4.12.16-5.12.16")
+daily_activity <- read_csv("dailyActivity_merged.csv")
+daily_sleep <- read_csv("sleepDay_merged.csv")
+daily_steps <- read_csv("dailySteps_merged.csv")
+daily_calories <- read_csv("dailyCalories_merged.csv")
+daily_intensities <- read_csv("dailyIntensities_merged.csv")
+hourly_steps <- read_csv("hourlySteps_merged.csv")
+hourly_intensities <- read_csv("hourlyIntensities_merged.csv")
+hourly_calories <- read_csv("hourlyCalories_merged.csv")
+```
+
+#### **Preview the loaded data**
+```{r}
+str(daily_activity)
+str(daily_sleep)
+str(daily_intensities)
+str(hourly_intensities)
+```
+
+We can see that the dates are in chr format and not in date format, we proceed to correct these formats 
+
+#### **Fixing dates format**
+
+```{r}
+daily_activity$ActivityDate <- as.Date(daily_activity$ActivityDate, format = "%m/%d/%Y")
+#Verify the change
+str(daily_activity)
+
+daily_calories$ActivityDay <- as.Date(daily_calories$ActivityDay, format = "%m/%d/%Y")
+daily_intensities$ActivityDay <- as.Date(daily_intensities$ActivityDay, format = "%m/%d/%Y")
+daily_steps$ActivityDay <- as.Date(daily_steps$ActivityDay, format = "%m/%d/%Y")
+
+
+#We make the change for date and time
+
+hourly_intensities$ActivityHour <- mdy_hms(hourly_intensities$ActivityHour)
+hourly_intensities$time <- format(hourly_intensities$ActivityHour, format= "%H:%M:%S")
+hourly_intensities$date <- format(hourly_intensities$ActivityHour, format = "%m/%d/%y")
+
+hourly_steps$ActivityHour <- mdy_hms(hourly_steps$ActivityHour)
+hourly_steps$time <-format(hourly_steps$ActivityHour, format= "%H:%M:%S")
+hourly_steps$date <- format(hourly_steps$ActivityHour, format = "%m/%d/%y")
+
+
+hourly_calories$ActivityHour <- mdy_hms(hourly_calories$ActivityHour)
+hourly_calories$time <-format(hourly_calories$ActivityHour, format= "%H:%M:%S")
+hourly_calories$date <- format(hourly_calories$ActivityHour, format = "%m/%d/%y")
+
+
+daily_sleep$SleepDay <- mdy_hms(daily_sleep$SleepDay)
+daily_sleep$time <- format(daily_sleep$SleepDay, format= "%H:%M:%S")
+daily_sleep$date <- format(daily_sleep$SleepDay, format = "%m/%d/%y")
+
+#Verify the change
+str(hourly_intensities)
+head(daily_sleep)
+
+```
+
+#### **Explore the data**
+
+We know that the number of participants for this data set was 33, however some tables may have fewer, depending on whether participants have agreed to provide that type of information.
+
+*We verify the number of participants for each table.*
+```{r}
+n_distinct(daily_activity$Id)
+n_distinct(daily_calories$Id)
+n_distinct(daily_intensities$Id)
+n_distinct(daily_sleep$Id)
+n_distinct(daily_steps$Id)
+n_distinct(hourly_intensities$Id)
+n_distinct(hourly_steps$Id)
+n_distinct(hourly_calories$Id)
+```
+
+All data sets have 33 participants except for the daily sleep set which only had data from 24 participants, this is consistent with what is reported about the data.
+
+#### **Remove duplicates and null values**
+
+```{r}
+#Calculate whether there are duplicates
+sum(duplicated(daily_activity))
+sum(duplicated(daily_calories))
+sum(duplicated(daily_intensities))
+sum(duplicated(daily_sleep))
+sum(duplicated(daily_steps))
+sum(duplicated(hourly_intensities))
+sum(duplicated(hourly_steps))
+sum(duplicated(hourly_calories))
+#There are duplicate values in the daily_sleep table, they should be deleted.
+daily_sleep <- daily_sleep %>%
+  distinct() 
+
+#We check
+sum(duplicated(daily_sleep))
+
+```
+
+```{r}
+#We check null values
+sum(is.na(daily_activity))
+sum(is.na(daily_calories))
+sum(is.na(daily_intensities))
+sum(is.na(daily_sleep))
+sum(is.na(daily_steps))
+sum(is.na(hourly_intensities))
+sum(is.na(hourly_steps))
+sum(is.na(hourly_calories))
+#No missing values
+```
+
+```{r echo=TRUE, results='hide'}
+#We eliminate possible blank spaces at the beginning and at the end of each data item, which may interfere with the analysis.
+trimws(daily_activity)
+trimws(daily_calories)
+trimws(daily_intensities)
+trimws(daily_sleep)
+trimws(daily_steps)
+trimws(hourly_intensities)
+trimws(hourly_steps)
+trimws(hourly_calories)
+```
+
+### **Analysis**
+
+```{r}
+#We performed a statistical summary of each dataset.
+daily_activity %>%
+  select(TotalSteps, TotalDistance, Calories, SedentaryMinutes) %>%
+  summary()
+
+daily_calories %>%
+  select(Calories) %>%
+  summary()
+
+daily_intensities %>%
+  select(SedentaryMinutes, VeryActiveMinutes, LightlyActiveMinutes, FairlyActiveMinutes) %>%
+  summary()
+
+daily_sleep %>%
+  select(TotalMinutesAsleep, TotalTimeInBed) %>%
+  summary()
+
+daily_steps %>%
+  select(StepTotal) %>%
+  summary()
+```
+
+We can see that the average number of daily steps is 7630 which is a little below the recommended for an active life, which should be at least 10000 steps. We can also see that the average distance traveled is 5245. The daily sedentary minutes correspond to 16 hours, and the average sleep time is almost 7 hours, however the minimum is 1 hour and the maximum is 13 hours. 
+
+#### **Analysis of correlations**
+
+```{r}
+#Let's analyze the correlation between total steps and hourly activity.
+Steps_intensities <- merge(hourly_intensities, hourly_steps, by=c("ActivityHour", "Id"))
+
+
+graph1 <- ggplot(data= Steps_intensities, aes(x= StepTotal, y=TotalIntensity))+
+  geom_point(aes(color= TotalIntensity)) + geom_smooth() + 
+  scale_color_gradient(low = "lightgrey", high = "black") +
+  labs(title = "Activity intensity vs. Total steps", 
+                                      x = "Total steps", 
+                                      y = "Activity intensity", 
+                                      caption = "Data Collected by FitBit Fitness Tracker Data")
+
+graph1
+```
+
+There is a statistical relationship indicating that users who are more physically active, in terms of activity intensity, also tend to walk more. It suggests that people who participate in more vigorous activities are also more likely to be more active in terms of steps taken.
+
+```{r}
+#Total steps vs. calories
+graph2 <- ggplot(data = daily_activity, aes(x=TotalSteps, y=Calories))+
+  geom_point() + geom_smooth() + labs(title = "Total steps vs. Calories", 
+                                      x = "Total steps",
+                                      y = "Calories", 
+                                      caption = "Data Collected by FitBit Fitness Tracker Data")
+
+graph2
+```
+
+As expected there is a positive correlation between steps taken and calories burned.
+
+```{r}
+#Minutes in bed vs. minutes asleep
+graph3 <- ggplot(data = daily_sleep, aes(x=TotalMinutesAsleep, y=TotalTimeInBed))+
+  geom_point() + geom_smooth() + labs(title = "Total minutes asleep vs. Total time in bed", 
+                                      x = "Total minutes asleep",
+                                      y = "Total time in bed", 
+                                      caption = "Data Collected by FitBit Fitness Tracker Data")
+
+graph3
+```
+
+There is a linear relationship between minutes of sleep and time in bed, so you can implement notifications to go to bed or recommendations to improve sleep quality. 
+
+```{r}
+#Minutes asleep vs. sedentary minutes
+daily_sleep <- daily_sleep %>%
+  rename(ActivityHour= SleepDay)
+
+sleep_activity <- merge(hourly_intensities, daily_sleep, by=c("ActivityHour", "Id"))
+
+graph4 <- ggplot(data = sleep_activity, aes(x=TotalMinutesAsleep, y=TotalIntensity))+
+  geom_point(aes(color= TotalIntensity)) + geom_smooth() + 
+  scale_color_gradient(low = "lightgrey", high = "black") +
+  labs(title = "Total minutes asleep vs. Total activity intensity", 
+       x = "Total minutes asleep",
+       y = "Total intensity", 
+       caption = "Data Collected by FitBit Fitness Tracker Data")
+graph4
+```
+
+There does not seem to be a correlation between the intensity of physical activity and the total minutes slept. 
+
+```{r}
+#Average activity vs, time
+ints_hour <- hourly_intensities %>%
+  group_by(time) %>%
+  drop_na() %>%
+  summarise(mean_intensity = mean(TotalIntensity))
+
+graph5 <- ggplot(data=ints_hour, aes(x=time, y=mean_intensity)) + 
+  geom_histogram(stat = "identity", fill='cyan4') +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title="Average Total Intensity vs. Time",
+       x="Time",
+       y= "Average intensity",
+       caption = "Data Collected by FitBit Fitness Tracker Data")
+graph5
+
+```
+
+The hours with more physical activity is from 5 PM to 7 PM, so you can recommend these hours to send notifications about physical activity or even have plans with semi-personal training from the application. 
+
+### **Act**
+
+#### **Recommendations**
+* The average daily steps of the participants are below the recommendations for sufficient physical activity. In addition, most of the time users remain in sedentary activities or with very little activity. Therefore, one of the recommendations is to remember the importance of maintaining an active lifestyle through notifications. Semi-personalized training plans can be implemented in the application that adapt to the life style and preferences of the interested parties.
+
+* Peak activity hours are between 5 PM and 7 PM, so this schedule could be used to send reminders to users about engaging in physical activity.
+
+* A positive correlation is observed between total steps and daily activity intensity, suggesting that the most common activities are walking. Therefore, training focused on walking or running could be developed for those who prefer these activities.
+
+* The average number of hours of sleep stands at almost 7 hours, although it is observed that people tend to spend in bed without sleep on average 45 minutes. In addition, there are users who sleep as little as one hour. Therefore, it is recommended to implement in the application tips to improve the quality of sleep and send notifications to remind users to go to bed at the set time.
